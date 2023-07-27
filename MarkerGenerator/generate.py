@@ -3,6 +3,9 @@ import tkinter.font as tkFont
 from turtle import pen
 from math import pi as PI
 
+from PIL import Image
+import cv2
+
 from utils import *
 
 class Generate():
@@ -15,15 +18,16 @@ class Generate():
         self.code_radius = 0.062482177287080
         self.filler_code_radius = 0.7
         self.file_size = 1000
+        self.codes = []
     
     def marker(self):  # sourcery skip: for-index-underscore
         self.initialise_component()
 
-        markerSize = self.file_size / (1 + self.border_width * 2)
-        borderSize = markerSize * self.border_width
+        self.markerSize = self.file_size / (1 + self.border_width * 2)
+        self.borderSize = self.markerSize * self.border_width
 
-        outerCircleDiameterSize = 2 * markerSize * self.outer_circle_radius
-        innerCircleDiameterSize = 2 * markerSize * self.inner_circle_radius
+        outerCircleDiameterSize = 2 * self.markerSize * self.outer_circle_radius
+        innerCircleDiameterSize = 2 * self.markerSize * self.inner_circle_radius
         outerCircleTopLeft = (self.file_size - outerCircleDiameterSize)/2
         innerCircleTopLeft = (self.fileSize - innerCircleDiameterSize)/2
         codeCircleDiameterSize = 2 * innerCircleDiameterSize * self.code_Radius;
@@ -35,7 +39,7 @@ class Generate():
 
         self.fill_location()
 
-        for HD in range(11, 23, 2):
+        for self.HD in range(11, 23, 2):
             self.readCodeList()
             self.drawMarkers()
         
@@ -91,6 +95,41 @@ class Generate():
                 if utils.distanceBetweenDoublePoints(codeLocs[i], codeLocs[j]) < self.code_radius * 4:
                     nearbyCodes[i].append(j)
 
-    def initialise_component(self):
-    def readCodeList(self):
     def drawMarkers(self):
+        os.chdir(os.getcwd)
+        new_folders = f"HD{str(self.HD)}"
+        os.makedirs(new_folders)
+
+        # create a white bitmap image
+        """
+        Generate a bitmap
+
+        Since python has no builtin bitmap function,
+        I'm using a numpy array generate image.
+        """
+        img = utils.createBitmapImage(self.file_size)
+
+        for i in range(i < self.codes):
+
+            # Draw Outer Rectangle 
+            """
+            Draw outer rectangle.
+            -1 added to cv2.rectangle to fill rectangle with the specified color
+            """
+            cv2.rectangle(img, [int(self.borderSize), int(self.borderSize)], [int(self.borderSize + self.markerSize), int(self.borderSize + self.markerSize)], (0,0,0), -1)
+            """
+            Draw Outer Circle
+            -1 added to cv2.circle to fill circle with the specified color
+            """
+            cv2.circle(img, (500, 500), int(self.outerCircleDiameterSize/2), (255,255,255), -1)
+
+            """
+            Draw Inner Circles
+            """
+            for j in range(self.number_of_bits):
+                if(self.codes[i][j] == 1):
+                    cv2.circle(img, )
+
+
+        
+
