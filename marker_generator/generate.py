@@ -15,6 +15,9 @@ class Generate():
         self.filler_code_radius = 0.7
         self.file_size = 1000
         self.codes = []
+        self.codeLocs = []
+        self.nearbyCodes = []
+        self.rad = 12
     
     def marker(self):  # sourcery skip: for-index-underscore
         self.initialise_component()
@@ -40,9 +43,8 @@ class Generate():
             self.drawMarkers()
         
     def fill_location(self):
-        codeLocs = []
         for i in range(4):
-            codeLocs.extend(
+            self.codeLocs.extend(
                 (
                     Utils.polarToCart(
                         0.088363142525988, 0.785398163397448 + i * (PI / 2)
@@ -82,15 +84,15 @@ class Generate():
                     )
                 )
             )
-        nearbyCodes = []
         for i in range(self.number_of_bits):
-            nearbyCodes.append([])
+            self.nearbyCodes.append([])
             for j in range(self.number_of_bits):
                 if i == j:
                     continue
-                if Utils.distanceBetweenDoublePoints(codeLocs[i], codeLocs[j]) < self.code_radius * 4:
-                    nearbyCodes[i].append(j)
-        return nearbyCodes
+                if Utils.distanceBetweenDoublePoints(self.codeLocs[i], self.codeLocs[j]) < self.code_radius * 4:
+                    self.nearbyCodes[i].append(j)
+        """ returning only to help with tests """
+        return self.nearbyCodes
 
     def drawMarkers(self):
         os.chdir(os.getcwd())
@@ -106,7 +108,7 @@ class Generate():
         """
         img = Utils.createBitmapImage(self.file_size)
 
-        for i in range(self.codes):
+        for i in range(len(self.codes)):
 
             # Draw Outer Rectangle 
             """
@@ -123,11 +125,55 @@ class Generate():
             # Need to add smoothening filter - AntiAliasing
 
             """
-            Draw Inner Circles
+            Apply Black Code Circles
             """
             for j in range(self.number_of_bits):
-                if(self.codes[i][j] == 1):
-                    cv2.circle(img,)
+                if self.codes[i][j] == 1:
+                    cv2.circle(
+                        img,
+                        [
+                            Utils.centreCodeCircleX(j, self.innerCircleTopLeft, self.innerCircleDiameterSize, self.codeLocs),
+                            Utils.centreCodeCircleY(j, self.innerCircleTopLeft, self.innerCircleDiameterSize, self.codeLocs)
+                        ],
+                        int(self.innerCircleDiameterSize/2),
+                        (0,0,0),
+                        -1
+                    )
+            """
+            Apply Filler Circles
+            """
+            for j in range(self.number_of_bits):
+                for k in range(self.number_of_bits):
+                    if (self.codes[i][j] == 1) & (self.codes[i][k] == 1):
+                        if k in self.nearbyCodes[j]:
+                            cv2.circle(
+                                img,
+                                [
+                                    Utils.centreFillerCircleX(j, k, self.innerCircleTopLeft, self.innerCircleDiameterSize, self.codeLocs),
+                                    Utils.centreFillerCircleY(j, k, self.innerCircleTopLeft, self.innerCircleDiameterSize, self.codeLocs)
+                                ],
+                                int(self.fillerCircleDiameterSize/2),
+                                (0,0,0),
+                                -1
+                            )
+            """
+            Apply White Code Circles
+            """
+            for j in range(self.number_of_bits):
+                if self.codes[i][j] == 0:
+                    cv2.circle(
+                        img,
+                        [
+                            Utils.centreCodeCircleX(j, self.innerCircleTopLeft, self.innerCircleDiameterSize, self.codeLocs),
+                            Utils.centreCodeCircleY(j, self.innerCircleTopLeft, self.innerCircleDiameterSize, self.codeLocs)
+                        ],
+                        int(self.innerCircleDiameterSize / 2),
+                        (255, 255, 255),
+                        -1
+                    )
+            """
+            Erode & Dilate
+            """
 
 
         
